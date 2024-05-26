@@ -717,7 +717,7 @@ dom_exception xml_parser_add_element_node(dom_xml_parser *parser,
 			strlen((const char *) child->ns->prefix) : 0) +
 			(child->ns->prefix != NULL ? 1 : 0) /* ':' */ +
 			strlen((const char *) child->name);
-		uint8_t qnamebuf[qnamelen + 1 /* '\0' */];
+		uint8_t *qnamebuf = (uint8_t *)malloc(qnamelen + 1 /* '\0' */);
 
 		/* Create namespace DOM string */
 		err = dom_string_create(
@@ -727,6 +727,7 @@ dom_exception xml_parser_add_element_node(dom_xml_parser *parser,
 		if (err != DOM_NO_ERR) {
 			parser->msg(DOM_MSG_CRITICAL, parser->mctx,
 					"No memory for namespace");
+			if(qnamebuf) free(qnamebuf);
 			return err;
 		}
 
@@ -747,6 +748,7 @@ dom_exception xml_parser_add_element_node(dom_xml_parser *parser,
 			dom_string_unref(namespace);
 			parser->msg(DOM_MSG_CRITICAL, parser->mctx,
 					"No memory for qname");
+			if(qnamebuf) free(qnamebuf);
 			return err;
 		}
 
@@ -759,12 +761,14 @@ dom_exception xml_parser_add_element_node(dom_xml_parser *parser,
 			parser->msg(DOM_MSG_CRITICAL, parser->mctx,
 					"Failed creating element '%s'",
 					qnamebuf);
+			if(qnamebuf) free(qnamebuf);
 			return err;
 		}
 
 		/* No longer need namespace / qname */
 		dom_string_unref(namespace);
 		dom_string_unref(qname);
+		if(qnamebuf) free(qnamebuf);
 	}
 
 	/* Add attributes to created element */
@@ -809,7 +813,7 @@ dom_exception xml_parser_add_element_node(dom_xml_parser *parser,
 				strlen((const char *) a->ns->prefix) : 0) +
 				(a->ns->prefix != NULL ? 1 : 0) /* ':' */ +
 				strlen((const char *) a->name);
-			uint8_t qnamebuf[qnamelen + 1 /* '\0' */];
+			uint8_t *qnamebuf = (uint8_t *)malloc(qnamelen + 1 /* '\0' */);
 
 			/* Create namespace DOM string */
 			err = dom_string_create(
@@ -819,6 +823,7 @@ dom_exception xml_parser_add_element_node(dom_xml_parser *parser,
 			if (err != DOM_NO_ERR) {
 				parser->msg(DOM_MSG_CRITICAL, parser->mctx,
 						"No memory for namespace");
+				if(qnamebuf) free(qnamebuf);
 				goto cleanup;
 			}
 
@@ -839,6 +844,7 @@ dom_exception xml_parser_add_element_node(dom_xml_parser *parser,
 				dom_string_unref(namespace);
 				parser->msg(DOM_MSG_CRITICAL, parser->mctx,
 						"No memory for qname");
+				if(qnamebuf) free(qnamebuf);
 				goto cleanup;
 			}
 
@@ -851,12 +857,14 @@ dom_exception xml_parser_add_element_node(dom_xml_parser *parser,
 				parser->msg(DOM_MSG_CRITICAL, parser->mctx,
 						"Failed creating attribute \
 						'%s'", qnamebuf);
+				if(qnamebuf) free(qnamebuf);
 				goto cleanup;
 			}
 
 			/* No longer need namespace / qname */
 			dom_string_unref(namespace);
 			dom_string_unref(qname);
+			if(qnamebuf) free(qnamebuf);
 		}
 
 		/* Clone subtree (attribute value) */
